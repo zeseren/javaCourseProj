@@ -60,6 +60,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | Dependency | Version | Scope | Notes |
 |---|---|---|---|
 | `jakarta.servlet-api` | 6.1.0 | provided | Servlet container provides this at runtime |
+| `postgresql` | 42.7.4 | compile | PostgreSQL JDBC driver |
 | `junit-jupiter-api` / `junit-jupiter-engine` | 5.13.2 | test | JUnit 5 |
 
 ## Architecture
