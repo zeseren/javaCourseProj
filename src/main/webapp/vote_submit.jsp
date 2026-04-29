@@ -4,6 +4,7 @@
 <%@ page import="org.test.model.VoteOption" %>
 <%@ page import="org.test.util.HtmlUtil" %>
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ include file="/WEB-INF/jspf/context.jspf" %>
 <%
     VoteQuestion question = (VoteQuestion) request.getAttribute("question");
     List<VoteOption> options = (List<VoteOption>) request.getAttribute("options");
@@ -17,15 +18,15 @@
 <head>
     <meta charset="UTF-8">
     <title>提交投票 - 校园问卷投票系统</title>
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/assets/style.css">
+    <link rel="stylesheet" href="${ctx}/assets/style.css">
 </head>
 <body>
 <main class="page">
     <div class="topbar">
         <h1>提交投票</h1>
         <nav class="nav">
-            <a href="<%= request.getContextPath() %>/vote/list">问卷列表</a>
-            <a href="<%= request.getContextPath() %>/user?action=logout">退出登录</a>
+            <a href="${ctx}/vote/list">问卷列表</a>
+            <a href="${ctx}/user?action=logout">退出登录</a>
         </nav>
     </div>
 
@@ -39,12 +40,12 @@
         <% } else if (Boolean.TRUE.equals(alreadyVoted)) { %>
             <h1><%= HtmlUtil.escape(question.getTitle()) %></h1>
             <p class="message">你已经投过这个问卷，不能重复投票。</p>
-            <a class="button" href="<%= request.getContextPath() %>/vote/result?questionId=<%= question.getId() %>">查看结果</a>
+            <a class="button" href="${ctx}/vote/result?questionId=<%= question.getId() %>">查看结果</a>
         <% } else { %>
             <h1><%= HtmlUtil.escape(question.getTitle()) %></h1>
             <p class="muted">请选择一个选项后提交。</p>
 
-            <form method="post" action="<%= request.getContextPath() %>/vote/submit">
+            <form method="post" action="${ctx}/vote/submit">
                 <input type="hidden" name="questionId" value="<%= question.getId() %>">
                 <% for (VoteOption option : options) { %>
                     <label class="option">

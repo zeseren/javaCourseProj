@@ -1,5 +1,6 @@
 <%@ page import="org.test.util.HtmlUtil" %>
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ include file="/WEB-INF/jspf/context.jspf" %>
 <%
     String title = (String) request.getAttribute("title");
     if (title == null) {
@@ -11,15 +12,15 @@
 <head>
     <meta charset="UTF-8">
     <title>发布问卷 - 校园问卷投票系统</title>
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/assets/style.css">
+    <link rel="stylesheet" href="${ctx}/assets/style.css">
 </head>
 <body>
 <main class="page">
     <div class="topbar">
         <h1>发布问卷</h1>
         <nav class="nav">
-            <a href="<%= request.getContextPath() %>/vote/list">问卷列表</a>
-            <a href="<%= request.getContextPath() %>/user?action=logout">退出登录</a>
+            <a href="${ctx}/vote/list">问卷列表</a>
+            <a href="${ctx}/user?action=logout">退出登录</a>
         </nav>
     </div>
 
@@ -28,7 +29,7 @@
             <div class="error"><%= HtmlUtil.escape(request.getAttribute("error")) %></div>
         <% } %>
 
-        <form method="post" action="<%= request.getContextPath() %>/vote/publish">
+        <form method="post" action="${ctx}/vote/publish">
             <div class="form-row">
                 <label for="title">问卷标题</label>
                 <input id="title" type="text" name="title" value="<%= HtmlUtil.escape(title) %>">

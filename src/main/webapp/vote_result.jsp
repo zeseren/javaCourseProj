@@ -4,6 +4,7 @@
 <%@ page import="org.test.model.VoteOption" %>
 <%@ page import="org.test.util.HtmlUtil" %>
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ include file="/WEB-INF/jspf/context.jspf" %>
 <%
     VoteQuestion question = (VoteQuestion) request.getAttribute("question");
     List<VoteOption> options = (List<VoteOption>) request.getAttribute("options");
@@ -20,15 +21,15 @@
 <head>
     <meta charset="UTF-8">
     <title>投票结果 - 校园问卷投票系统</title>
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/assets/style.css">
+    <link rel="stylesheet" href="${ctx}/assets/style.css">
 </head>
 <body>
 <main class="page">
     <div class="topbar">
         <h1>投票结果</h1>
         <nav class="nav">
-            <a href="<%= request.getContextPath() %>/vote/list">问卷列表</a>
-            <a href="<%= request.getContextPath() %>/user?action=logout">退出登录</a>
+            <a href="${ctx}/vote/list">问卷列表</a>
+            <a href="${ctx}/user?action=logout">退出登录</a>
         </nav>
     </div>
 

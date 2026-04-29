@@ -1,6 +1,7 @@
 <%@ page import="jakarta.servlet.http.Cookie" %>
 <%@ page import="org.test.util.HtmlUtil" %>
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ include file="/WEB-INF/jspf/context.jspf" %>
 <%
     String username = (String) request.getAttribute("username");
     if (username == null) {
@@ -21,7 +22,7 @@
 <head>
     <meta charset="UTF-8">
     <title>登录 - 校园问卷投票系统</title>
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/assets/style.css">
+    <link rel="stylesheet" href="${ctx}/assets/style.css">
 </head>
 <body>
 <main class="page">
@@ -36,7 +37,7 @@
             <div class="error"><%= HtmlUtil.escape(request.getAttribute("error")) %></div>
         <% } %>
 
-        <form method="post" action="<%= request.getContextPath() %>/user?action=login">
+        <form method="post" action="${ctx}/user?action=login">
             <div class="form-row">
                 <label for="username">用户名</label>
                 <input id="username" type="text" name="username" value="<%= HtmlUtil.escape(username) %>">
@@ -46,7 +47,7 @@
                 <input id="password" type="password" name="password">
             </div>
             <button type="submit">登录</button>
-            <a class="button secondary" href="<%= request.getContextPath() %>/user?action=register">注册新用户</a>
+            <a class="button secondary" href="${ctx}/user?action=register">注册新用户</a>
         </form>
     </section>
 </main>

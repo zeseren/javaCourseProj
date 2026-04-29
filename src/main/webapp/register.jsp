@@ -1,5 +1,6 @@
 <%@ page import="org.test.util.HtmlUtil" %>
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ include file="/WEB-INF/jspf/context.jspf" %>
 <%
     String username = (String) request.getAttribute("username");
     if (username == null) {
@@ -11,7 +12,7 @@
 <head>
     <meta charset="UTF-8">
     <title>注册 - 校园问卷投票系统</title>
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/assets/style.css">
+    <link rel="stylesheet" href="${ctx}/assets/style.css">
 </head>
 <body>
 <main class="page">
@@ -23,7 +24,7 @@
             <div class="error"><%= HtmlUtil.escape(request.getAttribute("error")) %></div>
         <% } %>
 
-        <form method="post" action="<%= request.getContextPath() %>/user?action=register">
+        <form method="post" action="${ctx}/user?action=register">
             <div class="form-row">
                 <label for="username">用户名</label>
                 <input id="username" type="text" name="username" value="<%= HtmlUtil.escape(username) %>">
@@ -37,7 +38,7 @@
                 <input id="confirmPassword" type="password" name="confirmPassword">
             </div>
             <button type="submit">注册</button>
-            <a class="button secondary" href="<%= request.getContextPath() %>/user?action=login">返回登录</a>
+            <a class="button secondary" href="${ctx}/user?action=login">返回登录</a>
         </form>
     </section>
 </main>

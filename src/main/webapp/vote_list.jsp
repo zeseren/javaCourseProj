@@ -4,6 +4,7 @@
 <%@ page import="org.test.model.VoteQuestion" %>
 <%@ page import="org.test.util.HtmlUtil" %>
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ include file="/WEB-INF/jspf/context.jspf" %>
 <%
     User currentUser = (User) request.getAttribute("currentUser");
     if (currentUser == null) {
@@ -19,7 +20,7 @@
 <head>
     <meta charset="UTF-8">
     <title>问卷列表 - 校园问卷投票系统</title>
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/assets/style.css">
+    <link rel="stylesheet" href="${ctx}/assets/style.css">
 </head>
 <body>
 <main class="page">
@@ -29,8 +30,8 @@
             <p class="muted">当前用户：<%= HtmlUtil.escape(currentUser == null ? "" : currentUser.getUsername()) %></p>
         </div>
         <nav class="nav">
-            <a class="button" href="<%= request.getContextPath() %>/vote/publish">发布问卷</a>
-            <a href="<%= request.getContextPath() %>/user?action=logout">退出登录</a>
+            <a class="button" href="${ctx}/vote/publish">发布问卷</a>
+            <a href="${ctx}/user?action=logout">退出登录</a>
         </nav>
     </div>
 
@@ -59,10 +60,10 @@
                         <td><%= HtmlUtil.escape(question.getCreatedAt()) %></td>
                         <td>
                             <div class="actions">
-                                <a href="<%= request.getContextPath() %>/vote/submit?questionId=<%= question.getId() %>">去投票</a>
-                                <a href="<%= request.getContextPath() %>/vote/result?questionId=<%= question.getId() %>">看结果</a>
+                                <a href="${ctx}/vote/submit?questionId=<%= question.getId() %>">去投票</a>
+                                <a href="${ctx}/vote/result?questionId=<%= question.getId() %>">看结果</a>
                                 <% if (currentUser != null && currentUser.getId() == question.getUserId()) { %>
-                                    <a href="<%= request.getContextPath() %>/vote/delete?questionId=<%= question.getId() %>">删除</a>
+                                    <a href="${ctx}/vote/delete?questionId=<%= question.getId() %>">删除</a>
                                 <% } %>
                             </div>
                         </td>
