@@ -142,6 +142,13 @@ public class VoteSubmitServlet extends HttpServlet {
                 return;
             }
 
+            // 检查问卷状态：只有已通过的问卷才能投票
+            if (!"approved".equals(question.getStatus())) {
+                request.setAttribute("error", "该问卷当前不允许投票");
+                forwardSubmitPage(request, response, questionId);
+                return;
+            }
+
             // 确认选项属于当前问卷（防止篡改参数把票投到别的问卷上）
             if (!VoteModel.optionBelongsToQuestion(optionId, questionId)) {
                 request.setAttribute("error", "选项不属于当前问卷");
@@ -183,6 +190,8 @@ public class VoteSubmitServlet extends HttpServlet {
         // 告诉 JSP 页面：这个用户是否已经投过了
         request.setAttribute("alreadyVoted",
                 Boolean.valueOf(getVotedQuestionIds(request.getSession()).contains(Integer.valueOf(questionId))));
+        // 告诉 JSP 页面：问卷状态（用于显示"已结束"、"待审批"等提示）
+        request.setAttribute("status", question.getStatus());
     }
 
     /**

@@ -375,4 +375,117 @@ class VoteModelTest {
         boolean result = VoteModel.deleteQuestion(999999);
         assertFalse(result);
     }
+
+    // ==================== 管理员功能测试 ====================
+
+    @Test
+    void shouldCreateQuestionWithPendingStatus() throws SQLException {
+        VoteModel.createQuestion(testUserId, "待审批问卷", Arrays.asList("A", "B"));
+
+        List<VoteQuestion> all = VoteModel.findAllQuestions();
+        VoteQuestion found = null;
+        for (VoteQuestion q : all) {
+            if ("待审批问卷".equals(q.getTitle()) && q.getUserId() == testUserId) {
+                found = q;
+                break;
+            }
+        }
+        assertNotNull(found, "应找到新创建的问卷");
+        assertEquals("pending", found.getStatus(), "新发布的问卷状态应为 pending");
+    }
+
+    @Test
+    void shouldFindQuestionsForUserOnlyApprovedAndEnded() throws SQLException {
+        // 创建一个问卷（状态为 pending）
+        VoteModel.createQuestion(testUserId, "用户视角过滤", Arrays.asList("A", "B"));
+
+        // 普通用户视角不应该看到 pending 的问卷
+        List<VoteQuestion> questions = VoteModel.findQuestionsForUser();
+        for (VoteQuestion q : questions) {
+            if ("用户视角过滤".equals(q.getTitle()) && q.getUserId() == testUserId) {
+                fail("普通用户不应该看到待审批的问卷");
+            }
+        }
+    }
+
+    @Test
+    void shouldApproveQuestion() throws SQLException {
+        VoteModel.createQuestion(testUserId, "待审批", Arrays.asList("A", "B"));
+
+        List<VoteQuestion> all = VoteModel.findAllQuestions();
+        int questionId = -1;
+        for (VoteQuestion q : all) {
+            if ("待审批".equals(q.getTitle()) && q.getUserId() == testUserId) {
+                questionId = q.getId();
+                break;
+            }
+        }
+        assertTrue(questionId > 0);
+
+        // 审批通过
+        boolean approved = VoteModel.approveQuestion(questionId);
+        assertTrue(approved, "审批应该成功");
+
+        // 验证状态已变为 approved
+        VoteQuestion question = VoteModel.findQuestionById(questionId);
+        assertEquals("approved", question.getStatus());
+    }
+
+    @Test
+    void shouldEndQuestion() throws SQLException {
+        VoteModel.createQuestion(testUserId, "待结束", Arrays.asList("A", "B"));
+
+        List<VoteQuestion> all = VoteModel.findAllQuestions();
+        int questionId = -1;
+        for (VoteQuestion q : all) {
+            if ("待结束".equals(q.getTitle()) && q.getUserId() == testUserId) {
+                questionId = q.getId();
+                break;
+            }
+        }
+        assertTrue(questionId > 0);
+
+        // 先审批通过
+        VoteModel.approveQuestion(questionId);
+
+        // 再结束
+        boolean ended = VoteModel.endQuestion(questionId);
+        assertTrue(ended, "结束应该成功");
+
+        VoteQuestion question = VoteModel.findQuestionById(questionId);
+        assertEquals("ended", question.getStatus());
+    }
+
+    @Test
+    void shouldReturnTrueForOwnerOrAdmin() throws SQLException {
+        VoteModel.createQuestion(testUserId, "权限测试", Arrays.asList("A", "B"));
+
+        List<VoteQuestion> all = VoteModel.findAllQuestions();
+        int questionId = -1;
+        for (VoteQuestion q : all) {
+            if ("权限测试".equals(q.getTitle()) && q.getUserId() == testUserId) {
+                questionId = q.getId();
+                break;
+            }
+        }
+        assertTrue(questionId > 0);
+
+        // 发布者本人应该有权限
+        assertTrue(VoteModel.isQuestionOwnerOrAdmin(questionId, testUserId));
+    }
+
+    @Test
+    void shouldFindAllQuestionsForAdmin() throws SQLException {
+        VoteModel.createQuestion(testUserId, "管理员列表", Arrays.asList("A", "B"));
+
+        List<VoteQuestion> questions = VoteModel.findAllQuestionsForAdmin();
+        boolean found = false;
+        for (VoteQuestion q : questions) {
+            if ("管理员列表".equals(q.getTitle()) && q.getUserId() == testUserId) {
+                found = true;
+                break;
+            }
+        }
+        assertTrue(found, "管理员应该能看到待审批的问卷");
+    }
 }

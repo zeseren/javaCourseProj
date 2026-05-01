@@ -78,9 +78,9 @@ public class VoteDeleteServlet extends HttpServlet {
             VoteQuestion question = VoteModel.findQuestionById(questionId);
             if (question == null) {
                 request.setAttribute("error", "问卷不存在");
-            } else if (!VoteModel.isQuestionOwner(questionId, user.getId())) {
-                // 不是发布者 → 不能删除别人的问卷
-                request.setAttribute("error", "只能删除自己发布的问卷");
+            } else if (!VoteModel.isQuestionOwnerOrAdmin(questionId, user.getId())) {
+                // 既不是发布者也不是管理员 → 不能删除
+                request.setAttribute("error", "只能删除自己发布的问卷（管理员可以删除任意问卷）");
             } else {
                 // 一切正常 → 让用户确认
                 request.setAttribute("question", question);
@@ -126,8 +126,8 @@ public class VoteDeleteServlet extends HttpServlet {
 
         try {
             // 再次校验权限 —— 纵深防御
-            if (!VoteModel.isQuestionOwner(questionId, user.getId())) {
-                request.setAttribute("error", "只能删除自己发布的问卷");
+            if (!VoteModel.isQuestionOwnerOrAdmin(questionId, user.getId())) {
+                request.setAttribute("error", "只能删除自己发布的问卷（管理员可以删除任意问卷）");
                 request.getRequestDispatcher("/vote_delete.jsp").forward(request, response);
                 return;
             }

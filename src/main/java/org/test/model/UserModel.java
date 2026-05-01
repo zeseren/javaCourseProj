@@ -51,7 +51,7 @@ public class UserModel {
      */
     public static User findByUsername(String username) throws SQLException {
         // SQL 中只查需要的列，避免 SELECT * 拖慢查询
-        String sql = "select id, username, password, created_at from users where username = ?";
+        String sql = "select id, username, password, role, created_at from users where username = ?";
 
         // JDBC 的固定流程：获取连接 → 准备 SQL → 填参数 → 执行 → 处理结果
         Connection conn = null;
@@ -96,7 +96,7 @@ public class UserModel {
      * @throws SQLException 数据库错误
      */
     public static User findByUsernameAndPassword(String username, String password) throws SQLException {
-        String sql = "select id, username, password, created_at from users where username = ?";
+        String sql = "select id, username, password, role, created_at from users where username = ?";
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -167,7 +167,35 @@ public class UserModel {
         user.setId(rs.getInt("id"));
         user.setUsername(rs.getString("username"));
         user.setPassword(rs.getString("password"));
+        user.setRole(rs.getString("role"));
         user.setCreatedAt(rs.getTimestamp("created_at"));
         return user;
+    }
+
+    /**
+     * 检查用户是否为管理员。
+     *
+     * 为什么需要这个方法？
+     * 系统中多个地方需要判断当前用户是否有管理员权限，
+     * 集中在这个方法中统一读取，避免到处写 role 判断逻辑。
+     *
+     * @param userId 用户编号
+     * @return 是管理员返回 true
+     * @throws SQLException 数据库错误
+     */
+    public static boolean isAdmin(int userId) throws SQLException {
+        String sql = "select role from users where id = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = JdbcUtil.getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, userId);
+            rs = ps.executeQuery();
+            return rs.next() && "admin".equals(rs.getString("role"));
+        } finally {
+            JdbcUtil.close(rs, ps, conn);
+        }
     }
 }

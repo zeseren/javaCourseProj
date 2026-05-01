@@ -114,4 +114,37 @@ class UserModelTest {
         assertNotNull(user);
         assertTrue(user.getPassword().startsWith("$2a$"), "入库的密码应该是 bcrypt 哈希");
     }
+
+    // ==================== isAdmin 测试 ====================
+
+    @Test
+    void shouldReturnTrueForAdmin() throws SQLException {
+        // 创建一个测试用户后用 SQL 提升为管理员
+        UserModel.createUser(TEST_USER + "tmpadmin", "pass");
+        User user = UserModel.findByUsername(TEST_USER + "tmpadmin");
+        assertNotNull(user);
+
+        // 临时提升为 admin
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = JdbcUtil.getConnection();
+            ps = conn.prepareStatement("update users set role = 'admin' where id = ?");
+            ps.setInt(1, user.getId());
+            ps.executeUpdate();
+        } finally {
+            JdbcUtil.close(ps, conn);
+        }
+
+        assertTrue(UserModel.isAdmin(user.getId()));
+    }
+
+    @Test
+    void shouldReturnFalseForRegularUser() throws SQLException {
+        UserModel.createUser(TEST_USER + "regular", "pass");
+        User user = UserModel.findByUsername(TEST_USER + "regular");
+        assertNotNull(user);
+
+        assertFalse(UserModel.isAdmin(user.getId()));
+    }
 }

@@ -51,9 +51,15 @@ public class VoteListServlet extends HttpServlet {
         }
 
         try {
-            // 查询所有问卷，按时间倒序
-            request.setAttribute("questions", VoteModel.findAllQuestions());
-            // 把当前用户也传给 JSP，用于判断"是不是我的问卷"
+            // 根据角色查询不同范围的问卷
+            // 管理员：看到所有问卷（包括待审批）
+            // 普通用户：只看到已通过和已结束的问卷
+            if ("admin".equals(user.getRole())) {
+                request.setAttribute("questions", VoteModel.findAllQuestionsForAdmin());
+            } else {
+                request.setAttribute("questions", VoteModel.findQuestionsForUser());
+            }
+            // 把当前用户也传给 JSP，用于判断"是不是我的问卷"和管理权限
             request.setAttribute("currentUser", user);
             request.getRequestDispatcher("/vote_list.jsp").forward(request, response);
         } catch (SQLException e) {

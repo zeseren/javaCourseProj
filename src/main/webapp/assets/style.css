@@ -459,6 +459,105 @@ button.danger:hover {
     border-radius: inherit;
 }
 
+/* ==================== 管理员相关样式 ==================== */
+
+h2 {
+    margin: 0 0 16px;
+    color: #111827;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+h2 .count {
+    color: var(--color-muted);
+    font-size: 15px;
+    font-weight: 400;
+}
+
+.panel + .panel {
+    margin-top: 22px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    margin-left: 6px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    vertical-align: middle;
+}
+
+.badge.admin {
+    color: #ffffff;
+    background: var(--color-accent);
+}
+
+.badge.ended {
+    color: var(--color-muted);
+    background: #f0f0f0;
+}
+
+.pending-section {
+    border-left: 4px solid #ff8c00;
+}
+
+.pending-section h2 {
+    color: #b06200;
+}
+
+.ended-section {
+    opacity: 0.78;
+}
+
+/* 表单内嵌的链接样式按钮（审批、结束等操作） */
+.link-button {
+    display: inline;
+    padding: 0;
+    margin: 0;
+    color: var(--color-accent);
+    background: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    min-height: auto;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.link-button:hover {
+    color: var(--color-accent-hover);
+    background: none;
+    text-decoration: underline;
+}
+
+.approve-btn {
+    color: var(--color-success) !important;
+}
+
+.approve-btn:hover {
+    color: #0b5e0b !important;
+}
+
+.end-btn {
+    color: #b06200 !important;
+}
+
+.end-btn:hover {
+    color: #7a4300 !important;
+}
+
+.danger-link {
+    color: var(--color-danger) !important;
+}
+
+.danger-link:hover {
+    color: var(--color-danger-hover) !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

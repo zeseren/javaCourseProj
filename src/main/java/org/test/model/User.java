@@ -44,6 +44,14 @@ public class User {
     private String password;
 
     /**
+     * 用户角色 —— "user"（普通用户）或 "admin"（管理员）。
+     *
+     * 管理员有额外的权限：审批问卷、结束任意问卷、删除任意问卷。
+     * 普通用户只能发布、投票、管理自己的问卷。
+     */
+    private String role;
+
+    /**
      * 账号创建时间。
      *
      * 记录这个时间是为了以后可能的审计需求，
@@ -81,6 +89,14 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public Timestamp getCreatedAt() {

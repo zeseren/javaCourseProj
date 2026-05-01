@@ -60,7 +60,8 @@ public class VoteModel {
      * @throws SQLException 数据库错误
      */
     public static boolean createQuestion(int userId, String title, List<String> options) throws SQLException {
-        String questionSql = "insert into vote_questions(title, user_id) values(?, ?)";
+        // 新发布的问卷状态为 pending（待审批），需要管理员审批后才能被其他用户看到
+        String questionSql = "insert into vote_questions(title, user_id, status) values(?, ?, 'pending')";
         String optionSql = "insert into vote_options(question_id, content) values(?, ?)";
 
         Connection conn = null;
@@ -140,7 +141,7 @@ public class VoteModel {
      * @throws SQLException 数据库错误
      */
     public static List<VoteQuestion> findAllQuestions() throws SQLException {
-        String sql = "select q.id, q.title, q.user_id, u.username, q.created_at "
+        String sql = "select q.id, q.title, q.user_id, u.username, q.status, q.created_at "
                 + "from vote_questions q join users u on q.user_id = u.id "
                 + "order by q.created_at desc";
 
@@ -174,7 +175,7 @@ public class VoteModel {
      * @throws SQLException 数据库错误
      */
     public static VoteQuestion findQuestionById(int questionId) throws SQLException {
-        String sql = "select q.id, q.title, q.user_id, u.username, q.created_at "
+        String sql = "select q.id, q.title, q.user_id, u.username, q.status, q.created_at "
                 + "from vote_questions q join users u on q.user_id = u.id "
                 + "where q.id = ?";
 
@@ -356,6 +357,138 @@ public class VoteModel {
         }
     }
 
+    // ==================== 管理员相关方法 ====================
+
+    /**
+     * 查询普通用户可见的问卷 —— 只返回已通过和已结束的问卷。
+     *
+     * 待审批的问卷对普通用户不可见，保证未被审批的问卷不会出现在投票列表中。
+     *
+     * @return 已通过和已结束状态的问卷列表
+     * @throws SQLException 数据库错误
+     */
+    public static List<VoteQuestion> findQuestionsForUser() throws SQLException {
+        String sql = "select q.id, q.title, q.user_id, u.username, q.status, q.created_at "
+                + "from vote_questions q join users u on q.user_id = u.id "
+                + "where q.status in ('approved', 'ended') "
+                + "order by q.created_at desc";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = JdbcUtil.getConnection();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+            List<VoteQuestion> questions = new ArrayList<VoteQuestion>();
+            while (rs.next()) {
+                questions.add(mapQuestion(rs));
+            }
+            return questions;
+        } finally {
+            JdbcUtil.close(rs, ps, conn);
+        }
+    }
+
+    /**
+     * 查询管理员可见的全部问卷 —— 包括待审批、已通过和已结束。
+     *
+     * 管理员需要看到所有问卷以便审批和管理。
+     *
+     * @return 所有状态的问卷列表
+     * @throws SQLException 数据库错误
+     */
+    public static List<VoteQuestion> findAllQuestionsForAdmin() throws SQLException {
+        String sql = "select q.id, q.title, q.user_id, u.username, q.status, q.created_at "
+                + "from vote_questions q join users u on q.user_id = u.id "
+                + "order by q.created_at desc";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = JdbcUtil.getConnection();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+            List<VoteQuestion> questions = new ArrayList<VoteQuestion>();
+            while (rs.next()) {
+                questions.add(mapQuestion(rs));
+            }
+            return questions;
+        } finally {
+            JdbcUtil.close(rs, ps, conn);
+        }
+    }
+
+    /**
+     * 审批通过一个问卷 —— 将状态从 pending 改为 approved。
+     *
+     * 只有管理员可以调用此方法，校验在 Servlet 层完成。
+     *
+     * @param questionId 要审批的问卷编号
+     * @return 成功更新返回 true
+     * @throws SQLException 数据库错误
+     */
+    public static boolean approveQuestion(int questionId) throws SQLException {
+        String sql = "update vote_questions set status = 'approved' where id = ? and status = 'pending'";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = JdbcUtil.getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, questionId);
+            return ps.executeUpdate() == 1;
+        } finally {
+            JdbcUtil.close(ps, conn);
+        }
+    }
+
+    /**
+     * 结束一个问卷 —— 将状态从 approved 改为 ended。
+     *
+     * 结束后用户不可再投票，但结果仍然可查看。
+     * 只有管理员或问卷发布者可以调用，校验在 Servlet 层完成。
+     *
+     * @param questionId 要结束的问卷编号
+     * @return 成功更新返回 true
+     * @throws SQLException 数据库错误
+     */
+    public static boolean endQuestion(int questionId) throws SQLException {
+        String sql = "update vote_questions set status = 'ended' where id = ? and status = 'approved'";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = JdbcUtil.getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, questionId);
+            return ps.executeUpdate() == 1;
+        } finally {
+            JdbcUtil.close(ps, conn);
+        }
+    }
+
+    /**
+     * 检查用户是否有权管理问卷 —— 是发布者或管理员。
+     *
+     * 合并了原有的发布者检查和新增的管理员检查。
+     * 如果用户是发布者本人或有 admin 角色，都可以管理该问卷。
+     *
+     * @param questionId 问卷编号
+     * @param userId     用户编号
+     * @return 用户是发布者本人或管理员返回 true
+     * @throws SQLException 数据库错误
+     */
+    public static boolean isQuestionOwnerOrAdmin(int questionId, int userId) throws SQLException {
+        // 先检查是否是发布者（使用已有的轻量查询）
+        if (isQuestionOwner(questionId, userId)) {
+            return true;
+        }
+        // 不是发布者，再检查是否是管理员
+        return UserModel.isAdmin(userId);
+    }
+
     // ==================== 数据库行 → Java 对象的转换方法 ====================
 
     /**
@@ -367,6 +500,7 @@ public class VoteModel {
         question.setTitle(rs.getString("title"));
         question.setUserId(rs.getInt("user_id"));
         question.setUsername(rs.getString("username"));
+        question.setStatus(rs.getString("status"));
         question.setCreatedAt(rs.getTimestamp("created_at"));
         return question;
     }

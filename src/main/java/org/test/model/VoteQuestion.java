@@ -57,6 +57,16 @@ public class VoteQuestion {
      */
     private Timestamp createdAt;
 
+    /**
+     * 问卷状态 —— 在生命周期中所处的阶段。
+     *
+     * 三种状态：
+     *   pending   = 待审批（用户刚发布，等待管理员审批）
+     *   approved  = 已通过（管理员审批通过，用户可投票）
+     *   ended     = 已结束（投票关闭，不可再投票，结果仍可查看）
+     */
+    private String status;
+
     // ==================== getter / setter ====================
 
     public int getId() {
@@ -97,5 +107,13 @@ public class VoteQuestion {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

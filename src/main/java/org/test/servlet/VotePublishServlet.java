@@ -102,7 +102,8 @@ public class VotePublishServlet extends HttpServlet {
 
         try {
             VoteModel.createQuestion(user.getId(), title, options);
-            // 发布成功后重定向到列表页，用户能看到新问卷出现在列表中
+            // 发布成功后提示等待审批，然后重定向到列表页
+            request.getSession().setAttribute("message", "问卷已提交，等待管理员审批后即可显示在列表中");
             response.sendRedirect(request.getContextPath() + "/vote/list");
         } catch (SQLException e) {
             request.setAttribute("error", "发布失败：" + e.getMessage());

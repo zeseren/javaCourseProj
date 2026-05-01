@@ -12,6 +12,7 @@
         options = new ArrayList<VoteOption>();
     }
     Boolean alreadyVoted = (Boolean) request.getAttribute("alreadyVoted");
+    String status = (String) request.getAttribute("status");
 %>
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -41,6 +42,16 @@
             <h1><%= HtmlUtil.escape(question.getTitle()) %></h1>
             <p class="message">你已经投过这个问卷，不能重复投票。</p>
             <a class="button" href="${ctx}/vote/result?questionId=<%= question.getId() %>">查看结果</a>
+            <a class="button secondary" href="${ctx}/vote/list">返回列表</a>
+        <% } else if ("ended".equals(status)) { %>
+            <h1><%= HtmlUtil.escape(question.getTitle()) %></h1>
+            <p class="message">该问卷已经结束，不再接受投票。</p>
+            <a class="button" href="${ctx}/vote/result?questionId=<%= question.getId() %>">查看结果</a>
+            <a class="button secondary" href="${ctx}/vote/list">返回列表</a>
+        <% } else if ("pending".equals(status)) { %>
+            <h1><%= HtmlUtil.escape(question.getTitle()) %></h1>
+            <p class="message">该问卷正在等待管理员审批，审批通过后才可投票。</p>
+            <a class="button secondary" href="${ctx}/vote/list">返回列表</a>
         <% } else { %>
             <h1><%= HtmlUtil.escape(question.getTitle()) %></h1>
             <p class="muted">请选择一个选项后提交。</p>
