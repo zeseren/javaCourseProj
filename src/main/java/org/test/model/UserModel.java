@@ -1,6 +1,7 @@
 package org.test.model;
 
 import org.test.util.JdbcUtil;
+import org.test.util.PasswordUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -76,21 +77,26 @@ public class UserModel {
     }
 
     /**
-     * 登录验证 —— 同时检查用户名和密码是否匹配。
+     * 登录验证 —— 先按用户名查出用户，再用 bcrypt 比对密码哈希。
      *
-     * 为什么不用两步（先查用户名，再比密码）？
-     * 一次 SQL 查完效率更高，数据库在 WHERE 条件里就能完成判断。
-     * 而且从安全角度看，不要在代码里把密码读出来再比较 ——
-     * 把比较交给数据库，密码不会在 Java 内存中多停留。
-     * （当然，当前是明文密码，这只是为了课程演示的简化做法）
+     * 为什么不在 SQL 里直接比对密码？
+     * bcrypt 哈希每次计算结果都不同（因为盐值随机），
+     * 无法用 SQL 的 WHERE password = ? 来比对。
+     * 正确做法是：
+     *   1. 按用户名查出用户记录
+     *   2. 用 BCrypt.checkpw() 验证明文密码和哈希是否匹配
+     *
+     * 为什么不返回"用户名不存在"和"密码错误"两种提示？
+     * 如果分开提示，攻击者可以逐个试用户名，找出哪些账号存在。
+     * 统一返回 null 让攻击者无从判断。
      *
      * @param username 登录时输入的用户名
-     * @param password 登录时输入的密码
+     * @param password 登录时输入的明文密码
      * @return 匹配成功返回 User，失败返回 null
      * @throws SQLException 数据库错误
      */
     public static User findByUsernameAndPassword(String username, String password) throws SQLException {
-        String sql = "select id, username, password, created_at from users where username = ? and password = ?";
+        String sql = "select id, username, password, created_at from users where username = ?";
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -98,11 +104,17 @@ public class UserModel {
             conn = JdbcUtil.getConnection();
             ps = conn.prepareStatement(sql);
             ps.setString(1, username);
-            ps.setString(2, password);
             rs = ps.executeQuery();
             if (rs.next()) {
-                return mapUser(rs);
+                User user = mapUser(rs);
+                // 用 bcrypt 验证明文密码和数据库中存储的哈希是否匹配
+                if (PasswordUtil.verify(password, user.getPassword())) {
+                    return user;
+                }
             }
+            // 两种情况返回 null：
+            // 1. 用户名不存在（rs.next() 返回 false）
+            // 2. 密码哈希不匹配（PasswordUtil.verify 返回 false）
             return null;
         } finally {
             JdbcUtil.close(rs, ps, conn);
@@ -116,11 +128,11 @@ public class UserModel {
      * 注册成功后直接引导用户去登录，不需要完整的 User 对象。
      * 返回 true/false 足够判断操作是否成功。
      *
-     * 注意：当前没有对密码做任何加密处理。
-     * 真实项目中必须在入库前用 bcrypt/scrypt 对密码做哈希。
+     * 密码在入库前用 bcrypt 做哈希。
+     * 数据库中存的是哈希值，即使数据库泄露也无法反推出原始密码。
      *
      * @param username 注册用户名
-     * @param password 注册密码
+     * @param password 注册明文密码（会在方法内部做哈希）
      * @return 插入了一行则返回 true
      * @throws SQLException 数据库错误（如用户名重复导致唯一约束冲突）
      */
@@ -132,7 +144,8 @@ public class UserModel {
             conn = JdbcUtil.getConnection();
             ps = conn.prepareStatement(sql);
             ps.setString(1, username);
-            ps.setString(2, password);
+            // 关键安全步骤：密码在入库前做 bcrypt 哈希，绝不存明文
+            ps.setString(2, PasswordUtil.hash(password));
             // executeUpdate 返回受影响的行数，1 表示成功插入了一行
             return ps.executeUpdate() == 1;
         } finally {

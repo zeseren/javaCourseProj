@@ -153,8 +153,10 @@ public class UserServlet extends HttpServlet {
                 return;
             }
 
-            // 登录成功：把用户信息存到 Session 中
+            // 登录成功：清除密码哈希后，把用户信息存到 Session 中
+            // 密码哈希虽然不可逆，但也不应该在 Session 中长期驻留
             // Session 是服务器端的存储，每个登录用户都有自己独立的 Session
+            user.setPassword(null);
             HttpSession session = request.getSession();
             session.setAttribute("currentUser", user);
 

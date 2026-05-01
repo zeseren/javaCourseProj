@@ -157,10 +157,16 @@ classDiagram
         +close(PreparedStatement ps, Connection conn) void
     }
 
+    class PasswordUtil {
+        +hash(String plainPassword) String
+        +verify(String plainPassword, String hash) boolean
+    }
+
     User "1" --> "0..*" VoteQuestion : publishes
     VoteQuestion "1" --> "2..*" VoteOption : contains
     UserModel ..> User : creates/finds
     UserModel ..> JdbcUtil : uses
+    UserModel ..> PasswordUtil : uses
     VoteModel ..> VoteQuestion : creates/finds
     VoteModel ..> VoteOption : creates/finds
     VoteModel ..> JdbcUtil : uses
@@ -391,6 +397,7 @@ sequenceDiagram
     participant JSP as login.jsp
     participant Servlet as UserServlet
     participant Model as UserModel
+    participant PwdUtil as PasswordUtil
     participant DB as PostgreSQL
     participant Session as Session
     participant Cookie as Cookie
@@ -398,9 +405,12 @@ sequenceDiagram
     User->>JSP: 输入用户名和密码
     JSP->>Servlet: POST /user?action=login
     Servlet->>Model: findByUsernameAndPassword(username, password)
-    Model->>DB: 查询用户
-    DB-->>Model: 返回用户记录
+    Model->>DB: 按用户名查询用户
+    DB-->>Model: 返回用户记录（含 bcrypt 哈希）
+    Model->>PwdUtil: verify(明文密码, bcrypt哈希)
+    PwdUtil-->>Model: 匹配成功
     Model-->>Servlet: 返回User对象
+    Servlet->>Servlet: 清除User中的密码哈希
     Servlet->>Session: 保存currentUser
     Servlet->>Cookie: 写入lastUsername
     Servlet-->>User: 重定向到/vote/list

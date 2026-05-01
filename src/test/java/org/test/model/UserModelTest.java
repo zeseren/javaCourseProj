@@ -62,7 +62,9 @@ class UserModelTest {
 
         assertNotNull(user);
         assertEquals(TEST_USER + "find", user.getUsername());
-        assertEquals("pass123", user.getPassword());
+        // 密码字段存的是 bcrypt 哈希，不是明文
+        assertNotNull(user.getPassword());
+        assertTrue(user.getPassword().startsWith("$2a$"), "密码应该是 bcrypt 哈希");
         assertTrue(user.getId() > 0);
     }
 
@@ -78,8 +80,10 @@ class UserModelTest {
 
         // 正确的用户名和密码应该返回用户
         User user = UserModel.findByUsernameAndPassword(TEST_USER + "login", "mypassword");
-        assertNotNull(user);
+        assertNotNull(user, "正确密码应该登录成功");
         assertEquals(TEST_USER + "login", user.getUsername());
+        // 数据库里存的是 bcrypt 哈希，不是明文
+        assertTrue(user.getPassword().startsWith("$2a$"), "读取到的密码字段应该是 bcrypt 哈希");
     }
 
     @Test
@@ -105,8 +109,9 @@ class UserModelTest {
         boolean created = UserModel.createUser(TEST_USER + "create", "newpass");
         assertTrue(created);
 
-        // 验证数据确实写入了
+        // 验证数据确实写入了，且密码是 bcrypt 哈希
         User user = UserModel.findByUsername(TEST_USER + "create");
         assertNotNull(user);
+        assertTrue(user.getPassword().startsWith("$2a$"), "入库的密码应该是 bcrypt 哈希");
     }
 }

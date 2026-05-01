@@ -39,6 +39,8 @@ src/main/java/
     User.java
     VoteQuestion.java
     VoteOption.java
+    UserModel.java
+    VoteModel.java
 
   org/test/servlet/
     UserServlet.java
@@ -50,6 +52,7 @@ src/main/java/
 
   org/test/util/
     JdbcUtil.java
+    PasswordUtil.java
 ```
 
 说明：
@@ -90,7 +93,7 @@ src/main/webapp/
 create table users (
     id serial primary key,
     username varchar(50) not null unique,
-    password varchar(100) not null,
+    password varchar(255) not null,
     created_at timestamp not null default current_timestamp
 );
 ```
@@ -99,7 +102,7 @@ create table users (
 
 - `id`：用户主键。
 - `username`：用户名，不允许重复。
-- `password`：密码。课程设计阶段可以直接保存，实际项目应使用加密哈希。
+- `password`：密码，存储 bcrypt 哈希值（固定 60 字符，varchar(255) 为未来算法升级留余量）。
 - `created_at`：注册时间。
 
 ### 4.2 vote_questions 表
@@ -156,14 +159,14 @@ create table vote_options (
 ```text
 id: int
 username: String
-password: String
+password: String（bcrypt 哈希值，非明文）
 createdAt: Timestamp
 ```
 
 用途：
 
 - 保存登录用户信息。
-- 登录成功后放入 Session。
+- 登录成功后清除密码字段再放入 Session。
 
 ### 5.2 VoteQuestion
 
@@ -254,8 +257,8 @@ createUser(String username, String password)
 用途：
 
 - 注册时检查用户名是否存在。
-- 登录时校验用户名和密码。
-- 注册成功时保存用户。
+- 登录时先按用户名查出用户，再用 bcrypt 验证明文密码与哈希是否匹配。
+- 注册成功时对密码做 bcrypt 哈希后保存用户。
 
 ### 7.2 VoteModel 方法
 

@@ -29,6 +29,20 @@
             <artifactId>postgresql</artifactId>
             <version>42.7.4</version>
         </dependency>
+        <!--
+          bcrypt 密码哈希库。
+          为什么选 jbcrypt？
+          - 零外部依赖，只有一个几十KB的 jar 包
+          - API 极简：BCrypt.hashpw() 和 BCrypt.checkpw() 两行搞定
+          - 业界验证了近二十年，安全性经过充分考验
+          工作因子默认 10（2^10 = 1024 轮哈希迭代），
+          在安全性和性能之间取得了较好的平衡。
+        -->
+        <dependency>
+            <groupId>org.mindrot</groupId>
+            <artifactId>jbcrypt</artifactId>
+            <version>0.4</version>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
