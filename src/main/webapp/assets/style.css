@@ -510,28 +510,32 @@ h2 .count {
     opacity: 0.78;
 }
 
-/* 表单内嵌的链接样式按钮（审批、结束等操作） */
-.link-button {
-    display: inline;
-    padding: 0;
+/* 表单内嵌的链接样式按钮（审批、结束等操作），与 .actions a 保持一致 */
+.actions form {
+    display: inline-flex;
+}
+
+.actions .link-button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 6px 10px;
     margin: 0;
-    color: var(--color-accent);
-    background: none;
-    border: none;
-    border-radius: 0;
+    background: rgba(255, 255, 255, 0.86);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
     box-shadow: none;
     font: inherit;
     font-size: 13px;
     font-weight: 600;
-    min-height: auto;
     cursor: pointer;
     text-decoration: none;
+    transition: background-color 120ms ease, border-color 120ms ease;
 }
 
-.link-button:hover {
-    color: var(--color-accent-hover);
-    background: none;
-    text-decoration: underline;
+.actions .link-button:hover {
+    background: var(--color-accent-soft);
+    border-color: rgba(0, 120, 212, 0.26);
 }
 
 .approve-btn {
@@ -540,6 +544,8 @@ h2 .count {
 
 .approve-btn:hover {
     color: #0b5e0b !important;
+    background: var(--color-success-bg) !important;
+    border-color: rgba(16, 124, 16, 0.26) !important;
 }
 
 .end-btn {
@@ -548,6 +554,8 @@ h2 .count {
 
 .end-btn:hover {
     color: #7a4300 !important;
+    background: #fff8f0 !important;
+    border-color: rgba(176, 98, 0, 0.26) !important;
 }
 
 .danger-link {
